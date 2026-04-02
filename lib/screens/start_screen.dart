@@ -28,8 +28,8 @@ class _StartScreenState extends State<StartScreen> {
     }
   }
 
-  // New logic to show mode selection
-  void _showModeSelection(BuildContext context) {
+  // القائمة الرئيسية لاختيار نوع اللعبة (عباقرة، كازينو، صباحو)
+  void _showMainMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A237E),
@@ -42,10 +42,67 @@ class _StartScreenState extends State<StartScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'اختر نظام اللعب',
+              'اختر القسم',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 25),
+            _buildMainOption(
+              context: context,
+              title: 'العباقرة',
+              subtitle: 'اختبارات ذكاء ومعلومات عامة',
+              icon: Icons.psychology,
+              onTap: () {
+                Navigator.pop(context);
+                _showAbakeraModes(context); // يفتح اختيارات كلاسيكي ومتخصص
+              },
+            ),
+            const SizedBox(height: 15),
+            _buildMainOption(
+              context: context,
+              title: 'كازينو الألعاب',
+              subtitle: 'قريباً...',
+              icon: Icons.casino,
+              isComingSoon: true,
+              onTap: () {},
+            ),
+            const SizedBox(height: 15),
+            _buildMainOption(
+              context: context,
+              title: 'صباحو تحدي',
+              subtitle: 'قريباً...',
+              icon: Icons.wb_sunny,
+              isComingSoon: true,
+              onTap: () {},
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // قائمة فرعية تظهر فقط عند اختيار "العباقرة"
+  void _showAbakeraModes(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0D47A1),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'العباقرة: اختر نظام اللعب',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -72,6 +129,42 @@ class _StartScreenState extends State<StartScreen> {
     );
   }
 
+  Widget _buildMainOption({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isComingSoon = false,
+  }) {
+    return Card(
+      color: isComingSoon ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        leading: CircleAvatar(
+          backgroundColor: isComingSoon ? Colors.grey : Colors.amber,
+          child: Icon(icon, color: Colors.black),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isComingSoon ? Colors.white54 : Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: isComingSoon ? Colors.white38 : Colors.white70,
+            fontSize: 13,
+          ),
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
   Widget _buildModeOption({
     required BuildContext context,
     required String title,
@@ -85,8 +178,8 @@ class _StartScreenState extends State<StartScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         leading: CircleAvatar(
-          backgroundColor: Colors.amber,
-          child: Icon(icon, color: Colors.black),
+          backgroundColor: Colors.orange,
+          child: Icon(icon, color: Colors.white),
         ),
         title: Text(
           title,
@@ -97,8 +190,8 @@ class _StartScreenState extends State<StartScreen> {
           style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
         onTap: () {
-          Navigator.pop(context); // Close bottom sheet
-          _audioPlayer.stop(); // Stop intro music
+          Navigator.pop(context); // إغلاق القائمة
+          _audioPlayer.stop(); // إيقاف الموسيقى
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -153,7 +246,7 @@ class _StartScreenState extends State<StartScreen> {
               ),
               const SizedBox(height: 60),
               ElevatedButton(
-                onPressed: () => _showModeSelection(context),
+                onPressed: () => _showMainMenu(context), // يبدأ بالقائمة الرئيسية
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
