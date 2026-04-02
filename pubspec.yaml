@@ -1,0 +1,28 @@
+name: appqreno
+description: A self-questionnaire Flutter app named عبقرينو
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  audioplayers: ^5.2.1  # Add this line
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/audios/audio1.mp3
+    - assets/audios/audio2.mp3
+    - assets/audios/wheel_spin.mp3  #line Add this 
