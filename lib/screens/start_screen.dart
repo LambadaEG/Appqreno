@@ -28,7 +28,7 @@ class _StartScreenState extends State<StartScreen> {
     }
   }
 
-  // القائمة الرئيسية لاختيار نوع اللعبة (عباقرة، كازينو، صباحو)
+  // القائمة الرئيسية لاختيار نوع اللعبة
   void _showMainMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -53,21 +53,31 @@ class _StartScreenState extends State<StartScreen> {
             _buildMainOption(
               context: context,
               title: 'العباقرة',
-              subtitle: 'اختبارات ذكاء ومعلومات عامة',
+              subtitle: 'اسئلة من برنامج العباقرة',
               icon: Icons.psychology,
               onTap: () {
                 Navigator.pop(context);
-                _showAbakeraModes(context); // يفتح اختيارات كلاسيكي ومتخصص
+                _showAbakeraModes(context);
               },
             ),
             const SizedBox(height: 15),
             _buildMainOption(
               context: context,
               title: 'كازينو الألعاب',
-              subtitle: 'قريباً...',
+              subtitle: 'اسئلة من برنامج كازينو الألعاب',
               icon: Icons.casino,
-              isComingSoon: true,
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                _audioPlayer.stop();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SequentialQuizScreen(
+                      isCasinoMode: true, // تأكد أنها isCasinoMode وليست isCustomMode
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 15),
             _buildMainOption(
@@ -85,7 +95,6 @@ class _StartScreenState extends State<StartScreen> {
     );
   }
 
-  // قائمة فرعية تظهر فقط عند اختيار "العباقرة"
   void _showAbakeraModes(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -190,8 +199,8 @@ class _StartScreenState extends State<StartScreen> {
           style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
         onTap: () {
-          Navigator.pop(context); // إغلاق القائمة
-          _audioPlayer.stop(); // إيقاف الموسيقى
+          Navigator.pop(context);
+          _audioPlayer.stop();
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -217,10 +226,7 @@ class _StartScreenState extends State<StartScreen> {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [
-              Color(0xFF1A237E),
-              Color(0xFF0A0F2D),
-            ],
+            colors: [Color(0xFF1A237E), Color(0xFF0A0F2D)],
           ),
         ),
         child: Center(
@@ -239,30 +245,20 @@ class _StartScreenState extends State<StartScreen> {
               const SizedBox(height: 10),
               const Text(
                 'اختبار المعلومات والذكاء',
-                style: TextStyle(
-                  fontSize: 22,
-                  color: Colors.white70,
-                ),
+                style: TextStyle(fontSize: 22, color: Colors.white70),
               ),
               const SizedBox(height: 60),
               ElevatedButton(
-                onPressed: () => _showMainMenu(context), // يبدأ بالقائمة الرئيسية
+                onPressed: () => _showMainMenu(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
                   elevation: 10,
-                  shadowColor: Colors.amber.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(35),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                 ),
                 child: const Text(
                   'ابدأ اللعب',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
               ),
             ],

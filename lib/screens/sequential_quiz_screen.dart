@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'question_screen.dart';
 import 'final_results_screen.dart';
-import 'custom_mode_screen.dart'; // Ensure this file is created
+import 'custom_mode_screen.dart'; 
 import 'package:appqreno/models/models.dart';
 import 'package:appqreno/models/question_data.dart';
 import 'lucky_wheel_screen.dart';
 
 class SequentialQuizScreen extends StatefulWidget {
   final bool isCustomMode;
+  final bool isCasinoMode; // المتغير الذي يحدد هل نحن في وضع الكازينو
 
   const SequentialQuizScreen({
     super.key,
     this.isCustomMode = false,
+    this.isCasinoMode = false,
   });
 
   @override
@@ -61,7 +63,6 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
 
   void _initializeQuiz() async {
     try {
-      // Load questions from Google Sheets
       allQuestionsByCategory = await QuestionData.loadQuestionsFromSheet();
       
       if (mounted) {
@@ -69,8 +70,10 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
           isLoading = false;
         });
 
-        // Check if we should go to Custom Mode or Classic Mode
-        if (widget.isCustomMode) {
+        // التعديل هنا: إذا كان وضع كازينو، ابدأ الأسئلة فوراً ولا تذهب لشاشة الاختيار
+        if (widget.isCasinoMode) {
+          _startCasinoDirectly();
+        } else if (widget.isCustomMode) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -80,7 +83,6 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
             ),
           );
         } else {
-          // Normal Classic Mode sequence
           _startNextCategory();
         }
       }
@@ -95,18 +97,55 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
     }
   }
 
+  // هذه الدالة تقوم بسحب أسئلة الكازينو وبدء الشاشة فوراً
+  void _startCasinoDirectly() {
+    final casinoQuestions = QuestionData.getCustomQuestions(
+      ['كازينو'], // يجب أن يكون هذا الاسم مطابقاً تماماً لما هو مكتوب في الـ Spreadsheet
+      allQuestionsByCategory,
+      16,
+    );
+
+    final casinoCategory = Category(
+      name: 'كازينو الألعاب',
+      color: Colors.purple,
+      icon: Icons.casino,
+      description: 'تحدي الـ 16 سؤال',
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuestionScreen(
+          category: casinoCategory,
+          allQuestionsByCategory: allQuestionsByCategory,
+          customQuestions: casinoQuestions,
+          onCompleted: (score) {
+            // عند الانتهاء من الكازينو، اذهب لصفحة النتائج النهائية مباشرة
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FinalResultsScreen(
+                  totalScore: score,
+                  categoryScores: [score],
+                  categories: [casinoCategory],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   void _showErrorDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('خطأ في التحميل'),
-        content: const Text('تعذر تحميل الأسئلة من السحابة. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.'),
+        content: const Text('تعذر تحميل الأسئلة. تأكد من اتصال الإنترنت.'),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             child: const Text('حسناً'),
           ),
         ],
@@ -146,7 +185,6 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
 
   void onCategoryCompleted(int score) {
     if (!mounted) return;
-    
     setState(() {
       categoryScores.add(score);
       totalScore += score;
@@ -154,36 +192,28 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
     });
 
     if (currentCategoryIndex < categories.length) {
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          _startNextCategory();
-        }
-      });
+      Future.delayed(const Duration(seconds: 1), () => _startNextCategory());
     } else {
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FinalResultsScreen(
-                totalScore: totalScore,
-                categoryScores: categoryScores,
-                categories: categories,
-              ),
-            ),
-          );
-        }
-      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FinalResultsScreen(
+            totalScore: totalScore,
+            categoryScores: categoryScores,
+            categories: categories,
+          ),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     String loadingMessage = isLoading 
-        ? 'جاري تحميل الأسئلة من السحابة...' 
-        : (widget.isCustomMode 
-            ? 'جاري تحضير قائمة المواضيع...' 
-            : 'جاري تحميل ${categories[currentCategoryIndex].name}...');
+        ? 'جاري تحميل الأسئلة...' 
+        : (widget.isCasinoMode 
+            ? 'جاري تحضير الكازينو...' 
+            : 'جاري التحميل...');
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F2D),
@@ -191,18 +221,9 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
-              color: Colors.amber,
-            ),
+            const CircularProgressIndicator(color: Colors.amber),
             const SizedBox(height: 20),
-            Text(
-              loadingMessage,
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            Text(loadingMessage, style: const TextStyle(fontSize: 20, color: Colors.white)),
           ],
         ),
       ),
