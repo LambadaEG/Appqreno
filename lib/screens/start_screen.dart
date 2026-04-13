@@ -83,10 +83,21 @@ class _StartScreenState extends State<StartScreen> {
             _buildMainOption(
               context: context,
               title: 'صباحو تحدي',
-              subtitle: 'قريباً...',
+              subtitle: '16 سؤال من فئة صباحو',
               icon: Icons.wb_sunny,
-              isComingSoon: true,
-              onTap: () {},
+              isComingSoon: false, // تم الإطلاق!
+              onTap: () {
+                Navigator.pop(context); // إغلاق القائمة
+                _audioPlayer.stop(); // إيقاف الموسيقى
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SequentialQuizScreen(
+                      isSabahoMode: true, // تفعيل وضع صباحو
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 20),
           ],

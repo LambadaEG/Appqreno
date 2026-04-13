@@ -9,12 +9,14 @@ import 'lucky_wheel_screen.dart';
 
 class SequentialQuizScreen extends StatefulWidget {
   final bool isCustomMode;
-  final bool isCasinoMode; // المتغير الذي يحدد هل نحن في وضع الكازينو
+  final bool isCasinoMode;
+  final bool isSabahoMode; // إضافة وضع صباحو تحدي
 
   const SequentialQuizScreen({
     super.key,
     this.isCustomMode = false,
     this.isCasinoMode = false,
+    this.isSabahoMode = false, // القيمة الافتراضية false
   });
 
   @override
@@ -70,8 +72,10 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
           isLoading = false;
         });
 
-        // التعديل هنا: إذا كان وضع كازينو، ابدأ الأسئلة فوراً ولا تذهب لشاشة الاختيار
-        if (widget.isCasinoMode) {
+        // ترتيب التحقق من الأوضاع
+        if (widget.isSabahoMode) {
+          _startSabahoDirectly();
+        } else if (widget.isCasinoMode) {
           _startCasinoDirectly();
         } else if (widget.isCustomMode) {
           Navigator.pushReplacement(
@@ -97,10 +101,27 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
     }
   }
 
-  // هذه الدالة تقوم بسحب أسئلة الكازينو وبدء الشاشة فوراً
+  // دالة لبدء وضع صباحو تحدي مباشرة
+  void _startSabahoDirectly() {
+    final sabahoQuestions = QuestionData.getCustomQuestions(
+      ['صباحو'], // يجب أن يطابق الاسم في الـ Spreadsheet
+      allQuestionsByCategory,
+      16,
+    );
+
+    final sabahoCategory = Category(
+      name: 'صباحو تحدي',
+      color: Colors.orange,
+      icon: Icons.wb_sunny,
+      description: 'تحدي الـ 16 سؤال الصباحي',
+    );
+
+    _navigateToQuestionScreen(sabahoCategory, sabahoQuestions);
+  }
+
   void _startCasinoDirectly() {
     final casinoQuestions = QuestionData.getCustomQuestions(
-      ['كازينو'], // يجب أن يكون هذا الاسم مطابقاً تماماً لما هو مكتوب في الـ Spreadsheet
+      ['كازينو'],
       allQuestionsByCategory,
       16,
     );
@@ -112,22 +133,26 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
       description: 'تحدي الـ 16 سؤال',
     );
 
+    _navigateToQuestionScreen(casinoCategory, casinoQuestions);
+  }
+
+  // دالة موحدة للانتقال لشاشة الأسئلة في الأوضاع المباشرة
+  void _navigateToQuestionScreen(Category cat, List<Question> qs) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => QuestionScreen(
-          category: casinoCategory,
+          category: cat,
           allQuestionsByCategory: allQuestionsByCategory,
-          customQuestions: casinoQuestions,
+          customQuestions: qs,
           onCompleted: (score) {
-            // عند الانتهاء من الكازينو، اذهب لصفحة النتائج النهائية مباشرة
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => FinalResultsScreen(
                   totalScore: score,
                   categoryScores: [score],
-                  categories: [casinoCategory],
+                  categories: [cat],
                 ),
               ),
             );
@@ -211,9 +236,7 @@ class _SequentialQuizScreenState extends State<SequentialQuizScreen> {
   Widget build(BuildContext context) {
     String loadingMessage = isLoading 
         ? 'جاري تحميل الأسئلة...' 
-        : (widget.isCasinoMode 
-            ? 'جاري تحضير الكازينو...' 
-            : 'جاري التحميل...');
+        : (widget.isSabahoMode ? 'جاري تحضير تحدي صباحو...' : (widget.isCasinoMode ? 'جاري تحضير الكازينو...' : 'جاري التحميل...'));
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F2D),
