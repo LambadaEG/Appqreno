@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  firebase_core: ^2.24.2
+  cloud_firestore: ^4.14.0
   http: ^1.1.0
   audioplayers: ^5.2.1  # Add this line
 

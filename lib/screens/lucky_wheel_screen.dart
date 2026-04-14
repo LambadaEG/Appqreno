@@ -82,13 +82,6 @@ class _LuckyWheelScreenState extends State<LuckyWheelScreen>
     // Pick a winning index
     final winningIndex = random.nextInt(categories.length);
     
-    /* LOGIC FIX:
-    1. Flutter draws 0 radians at 3 o'clock. 
-    2. We want the result at the top (12 o'clock).
-    3. We rotate the wheel by (-pi/2) in the UI.
-    4. To make 'winningIndex' land at the top, the rotation must be:
-       Total = (Full Spins) + (Offset to bring index to 0) + (Half segment for centering)
-    */
     final targetAngle = (extraRotations * 2 * pi) + 
                         (2 * pi - (winningIndex * segmentAngle)) - 
                         (segmentAngle / 2);
@@ -190,7 +183,19 @@ class _LuckyWheelScreenState extends State<LuckyWheelScreen>
     });
 
     if (_completedQuestions >= _totalQuestions) {
-      widget.onCompleted(_totalScore);
+      // Use Future.microtask to avoid navigation conflicts
+      Future.microtask(() {
+        if (mounted) {
+          // Pop the wheel screen first
+          Navigator.pop(context);
+          // Then call onCompleted after a tiny delay
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              widget.onCompleted(_totalScore);
+            }
+          });
+        }
+      });
     }
   }
 

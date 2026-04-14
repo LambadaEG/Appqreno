@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'screens/start_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  // Required by Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
+  
   runApp(const AbqarenoApp());
 }
 

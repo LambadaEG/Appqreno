@@ -220,16 +220,15 @@ class _QuestionScreenState extends State<QuestionScreen> {
       _playQuestionAudio();
     } else {
       if (widget.selectedSubcategory != null) {
-        // Return to wheel
+        // For wheel questions: call onCompleted AND pop the question screen
         widget.onCompleted(score);
-        Navigator.pop(context);
+        Navigator.pop(context); // ← KEEP THIS UNCOMMENTED
       } else {
         // Normal or Custom mode (completes the sequence)
         widget.onCompleted(score);
       }
     }
   }
-
   Future<bool> _onWillPop() async {
     if (_timer.isActive) _timer.cancel();
     
